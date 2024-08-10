@@ -3,6 +3,7 @@
 import React, { useEffect, useRef } from "react";
 import * as echarts from "echarts";
 import mapData from "../public/json/mapdata.json";
+import customData from "../data.json"
 
 const json: any = mapData;
 
@@ -17,12 +18,28 @@ const Map: React.FC = () => {
     // 注册地图数据
     echarts.registerMap("china", json);
 
+    // 将 data.json 相应的区域标出
+    const mapSeriesData = customData.map((item: any) => ({
+      name: item.area,
+      itemStyle: {
+        areaColor: '#F5C6AD',
+      },
+    }));
+
     // 配置 ECharts 的选项
     const option = {
       // 配置 tooltip，用于在鼠标悬停时显示信息
       tooltip: {
         trigger: "item", // 触发类型，设置为 'item'，即鼠标悬停在地图区域时触发
-        formatter: "{b}", // 显示内容，这里设置为显示区域名称（省份名）
+        formatter: (params: any) => {
+          // 显示对应地区的数据
+          const data = customData.find((item: any) => item.area === params.name);
+          if (data) {
+            const infoContent = data.info.join("<br/>");
+            return `${data.area}<br/>${infoContent}`;
+          }
+          return `${params.name}`;
+        },
         backgroundColor: "rgba(50, 50, 50, 0.7)", // tooltip 背景颜色
         borderColor: "#333", // tooltip 边框颜色
         borderWidth: 1, // tooltip 边框宽度
@@ -46,7 +63,7 @@ const Map: React.FC = () => {
           label: {
             show: false, // 是否显示地区名称
           },
-          data: [], // 区域数据
+          data: mapSeriesData,
         },
       ],
     };
